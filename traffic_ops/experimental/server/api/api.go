@@ -20,6 +20,24 @@ import (
 	"strconv"
 )
 
+type CRUD interface {
+	Create() error
+	Read(key string) error
+	Update() error
+	Delete(key string) error
+}
+
+type CRUDIterator interface {
+	CRUD
+	Next() error
+}
+
+type ApiCRUDSqlxFunc func(db *sqlx.DB) (CRUD, error)
+
+var dispatchMap = map[string]ApiCRUDSqlxFunc{
+	"asn": NewAsnCrudSqlx,
+}
+
 type ApiMethod int
 
 const (

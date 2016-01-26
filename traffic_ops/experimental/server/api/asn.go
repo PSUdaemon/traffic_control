@@ -25,6 +25,11 @@ import (
 	"time"
 )
 
+type AsnCRUD struct {
+	db *sqlx.DB
+	Asn []Asn
+}
+
 type Asn struct {
 	Id          int64     `db:"id" json:"id"`
 	Asn         int64     `db:"asn" json:"asn"`
@@ -37,6 +42,20 @@ type AsnLinks struct {
 	CachegroupLink CachegroupLink `json:"cachegroup" db:-`
 }
 
+func NewAsnCrudSqlx(db *sqlx.DB) (CRUD, error) {
+	return AsnCRUD{ db: db }, nil
+}
+
+// Implement the json.Marhsaller interface
+func (crud AsnCRUD) MarshalJSON() ([]byte, error) {
+	return json.Marshal(crud.Asn)
+}
+
+// Implement the json.Unmarhsaller interface
+func (crud AsnCRUD) UnmarshalJSON(payload []byte) error {
+	return json.Unmarshal(payload, &crud.Asn)
+}
+
 // @Title getAsnById
 // @Description retrieves the asn information for a certain id
 // @Accept  application/json
@@ -44,7 +63,8 @@ type AsnLinks struct {
 // @Success 200 {array}    Asn
 // @Resource /api/2.0
 // @Router /api/2.0/asn/{id} [get]
-func getAsnById(id int, db *sqlx.DB) (interface{}, error) {
+func (crud AsnCRUD) Read(key string) error {
+	id := atoi(key)
 	ret := []Asn{}
 	arg := Asn{}
 	arg.Id = int64(id)
